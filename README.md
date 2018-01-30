@@ -1,6 +1,8 @@
 # aeppdev-oracle-editor
 
-VueJs based Æternity Oracles connector to develop Oracle interaction and overall lifecycle
+VueJs based Æternity Oracles connector to develop and test oracles.
+
+For more information on Æternity oracles read [this](https://github.com/aeternity/protocol/blob/master/epoch/api/oracle_api_usage.md)
 
 
 ## Build Setup
