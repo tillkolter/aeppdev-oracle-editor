@@ -1,5 +1,5 @@
 <template>
-  <div class="socket-console">
+  <div v-if="messages && messages.length > 0" class="socket-console">
     <pre class="socket-console__line" v-html="message" v-for="message in messages"></pre>
   </div>
 </template>
@@ -16,8 +16,9 @@
 
 <style lang="scss">
   .socket-console {
-    margin: 32px auto;
-    max-width: 1600px;
+    margin: 32px 0;
+    padding: 16px;
+    max-width: 600px;
     text-align: left;
     background-color: black;
     color: lightgreen;

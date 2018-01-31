@@ -2,7 +2,7 @@
   <div class="oracle-query">
     <form id="oracle-query" class="oracle-query-form" @submit.prevent="onSubmit">
       <label for="oracle-id">Oracle Id</label>
-      <input type="text" id="oracle-id" v-model="oracleId"/>
+      <input placeholder="enter oracle id" type="text" id="oracle-id" v-model="oracleId"/>
       <label for="query-fee">Query Fee</label>
       <input type="number" id="query-fee" v-model="queryFee"/>
       <label for="query-ttl">Query Ttl</label>
@@ -14,12 +14,13 @@
       <label for="query">Query</label>
       <input type="text" id="query" v-model="query"/>
     </form>
-    <ae-button class="query-btn" form="oracle-query" type="dramatic">Send Query</ae-button>
+    <ae-button class="query-btn" form="oracle-query" :type="oracleId && query ? 'dramatic': 'boring'">Send Query</ae-button>
   </div>
 </template>
 
 <script>
   import {AeButton} from '@aeternity/aepp-components'
+  import {mapGetters} from 'vuex'
 
   export default {
     name: 'QueryForm',
@@ -31,8 +32,18 @@
         queryTtl: 10,
         responseTtl: 10,
         fee: 7,
-        query: ''
+        query: 'Get random number'
       }
+    },
+    watch: {
+      stateOracleId (value) {
+        this.oracleId = value
+      }
+    },
+    computed: {
+      ...mapGetters({
+        stateOracleId: 'oracleId'
+      })
     },
     methods: {
       onSubmit () {

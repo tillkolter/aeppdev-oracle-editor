@@ -24,7 +24,10 @@
         <input id="fee" type="fee" v-model="fee"/>
       </form>
       <div class="oracle-registration__buttons">
-        <ae-button form="oracle-registration-form" type="dramatic">Register</ae-button>
+        <ae-button form="oracle-registration-form"
+                   :type="registrationButtonType"
+                   :disabled="registrationEnabled"
+        >Register</ae-button>
       </div>
     </div>
     <div class="oracle-lambda-form">
@@ -36,8 +39,8 @@
         <label for="lambda-input">Input</label>
         <input id="lambda-input" v-model="inputValue" type="text"/>
         <div class="oracle-lambda-buttons">
-          <ae-button form="lambda-form">Test</ae-button>
-          <ae-button form="lambda-form" @click="onSubmitJS" type="exciting">Save</ae-button>
+          <ae-button form="lambda-form" :type="oracleId ? 'normal': 'boring'">Test</ae-button>
+          <ae-button @click="onSubmitJS" :type="oracleId ? 'exciting': 'boring'">Save</ae-button>
         </div>
       </div>
       <div>{{error ? 'This function does not compile': ''}}</div>
@@ -113,7 +116,24 @@
       }
     },
     computed: {
-      ...mapGetters(['oracleLambda'])
+      ...mapGetters(['oracleLambda', 'oracleId', 'webSocket']),
+      registrationButtonType () {
+        if (this.webSocket) {
+          if (this.oracleId) {
+            return 'boring'
+          } else {
+            return 'dramatic'
+          }
+        } else {
+          return 'boring'
+        }
+      },
+      registrationEnabled () {
+        return typeof this.webSocket === 'undefined'
+      }
+    },
+    mounted () {
+      this.onSubmitJS()
     }
   }
 </script>
@@ -159,9 +179,6 @@
         }
         margin-left: 16px;
       }
-      /*&-buttons {*/
-        /*margin-top: auto;*/
-      /*}*/
       &__test {
         margin-top: auto;
         display: flex;

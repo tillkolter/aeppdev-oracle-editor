@@ -8,7 +8,10 @@
       <oracle-registration-form></oracle-registration-form>
       <query-form></query-form>
     </div>
-    <socket-console></socket-console>
+    <div>
+      <status-history></status-history>
+      <socket-console></socket-console>
+    </div>
   </div>
 </template>
 
@@ -18,8 +21,16 @@
   import OracleRegistrationForm from './OracleManager/OracleRegistrationForm'
   import OracleStatus from './OracleManager/OracleStatus'
   import QueryForm from './OracleManager/QueryForm'
+  import StatusHistory from './OracleManager/StatusHistory'
   export default {
-    components: {QueryForm, OracleStatus, OracleRegistrationForm, SocketConsole, SocketConnectionForm}, name: 'OracleManager'
+    components: {
+      StatusHistory,
+      QueryForm,
+      OracleStatus,
+      OracleRegistrationForm,
+      SocketConsole,
+      SocketConnectionForm},
+    name: 'OracleManager'
   }
 </script>
 

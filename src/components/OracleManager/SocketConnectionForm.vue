@@ -1,5 +1,5 @@
 <template>
-  <form class="connection-form" @submit.prevent="toggleConnect" >
+  <form id="connection" class="connection-form" @submit.prevent="toggleConnect" >
     <label for="account">Account
       <input id="account" name="account" type="text" v-model="account" required/>
     </label>
@@ -17,11 +17,14 @@
         <input id="http-port" name="httpPort" type="number" v-model="httpPort"/>
       </label>
     </div>
-    <input type="submit" :value="submitText" required/>
+    <div>
+      <ae-button form="connection" :type="webSocket ? 'exciting': 'dramatic'">{{submitText}}</ae-button>
+    </div>
   </form>
 </template>
 
 <script>
+  import {AeButton} from '@aeternity/aepp-components'
   import {mapGetters} from 'vuex'
 
   let config
@@ -33,19 +36,20 @@
 
   export default {
     name: 'SocketConnectionForm',
+    components: {AeButton},
     data () {
       return {
         account: (config && config.account) || '',
         port: (config && config.port) || 3104,
         host: (config && config.host) || 'localhost',
-        httpPort: 3003
+        httpPort: (config && config.httpPort) || 3003
       }
     },
     computed: {
       submitText () {
         return this.isClosed ? 'Connect' : 'Disconnect'
       },
-      ...mapGetters(['isClosed'])
+      ...mapGetters(['isClosed', 'webSocket'])
     },
     methods: {
       toggleConnect () {
