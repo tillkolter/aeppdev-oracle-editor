@@ -30,8 +30,8 @@ const mutations = {
 }
 
 const actions = {
-  connect ({ commit }, {host, port, account}) {
-    let connection = new OracleConnection(host, port, account)
+  connect ({commit}, {host, port, account, httpPort}) {
+    let connection = new OracleConnection(host, port, account, {httpPort})
     connection.on('message', (message) => {
       commit('ADD_MESSAGE', JSON.stringify(JSON.parse(message), null, 1))
     })
@@ -42,7 +42,6 @@ const actions = {
       commit('SET_ORACLE_ID', oracleId)
       commit('SET_ORACLE_STATUS', 'Registered')
       connection.subscribe(oracleId)
-      // connection.query(oracleId, 4, 5, 5, 7, 'How are you?' + Math.random().toString(36).substring(7))
     })
     connection.on('newQuery', function (queryData) {
       connection.respond(queryData['query_id'], 4, state.lambda(JSON.stringify(queryData)))

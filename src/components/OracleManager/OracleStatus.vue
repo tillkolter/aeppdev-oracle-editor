@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="oracle-status">
     <div>Current Oracle Id: {{oracleId}}</div>
     <div>Status: {{oracleStatus}}</div>
   </div>
@@ -14,3 +14,9 @@
     }
   }
 </script>
+
+<style>
+  .oracle-status {
+    margin-left: 32px;
+  }
+</style>
