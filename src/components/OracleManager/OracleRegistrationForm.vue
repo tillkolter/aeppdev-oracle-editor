@@ -36,8 +36,10 @@
         <textarea id="lambda" rows="12" col="80" v-model="lambda" type="textarea"></textarea>
       </form>
       <div class="oracle-lambda__test">
-        <label for="lambda-input">Input</label>
-        <input id="lambda-input" v-model="inputValue" type="text"/>
+        <div>
+          <label for="lambda-input">Input</label>
+          <input id="lambda-input" v-model="inputValue" type="text"/>
+        </div>
         <div class="oracle-lambda-buttons">
           <ae-button form="lambda-form" :type="oracleId ? 'normal': 'boring'">Test</ae-button>
           <ae-button @click="onSubmitJS" :type="'exciting'" :inactive="lambdaUptodate || !oracleId">Save</ae-button>

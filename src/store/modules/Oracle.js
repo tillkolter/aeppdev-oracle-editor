@@ -1,13 +1,15 @@
 import OracleConnection from 'aepp-oracles-sdk'
+import {truncate} from '../../utils/strings'
 
 const state = {
   messages: [],
   oracleConnection: undefined,
   oracleId: undefined,
-  status: 'No Oracle',
+  status: 'Disconnected from Websocket',
   statusHistory: [],
   pollingInterval: undefined,
   lambda: (x) => new Promise((resolve, reject) => resolve(`Response for ${x}`)),
+  lambdaString: '',
   blockHeight: undefined,
   responses: {}
 }
@@ -27,10 +29,15 @@ const mutations = {
     state.statusHistory.push({timestamp: new Date(), message: status})
   },
   SET_LAMBDA (state, lambda) {
-    state.lambda = lambda
+    state.lambda = Function(`return ${lambda}`)()
+    state.lambdaString = lambda
   },
   SUBMIT_QUERY (state, {oracleId, queryFee, queryTtl, responseTtl, fee, query}) {
-    state.oracleConnection.query(oracleId, queryFee, queryTtl, responseTtl, fee, query)
+    let sentData = state.oracleConnection.query(oracleId, queryFee, queryTtl, responseTtl, fee, query)
+    state.messages.push({
+      message: JSON.stringify(sentData),
+      incoming: false
+    })
   },
   SET_BLOCK_HEIGHT (state, height) {
     state.blockHeight = height
@@ -47,7 +54,11 @@ const actions = {
   connect ({commit}, {host, port, account, httpPort}) {
     let connection = new OracleConnection(host, port, account, {httpPort})
     connection.on('message', (message) => {
-      commit('ADD_MESSAGE', JSON.stringify(JSON.parse(message), null, 1))
+      let ingoingMessage = {
+        message: JSON.stringify(JSON.parse(message), null, 1),
+        incoming: true
+      }
+      commit('ADD_MESSAGE', ingoingMessage)
     })
     connection.on('close', () => {
       commit('SET_WEBSOCKET_CONNECTION', null)
@@ -59,29 +70,36 @@ const actions = {
     })
     connection.on('registeredOracle', (oracleId) => {
       commit('SET_ORACLE_ID', oracleId)
-      commit('SET_ORACLE_STATUS', 'Registered')
-      connection.subscribe(oracleId)
+      commit('SET_ORACLE_STATUS', 'Oracle registered')
+      let sentData = connection.subscribe(oracleId)
+      commit('ADD_MESSAGE', {
+        message: JSON.stringify(sentData, null, 1),
+        incoming: false
+      })
     })
     connection.on('newQuery', function (queryData) {
-      state.lambda(JSON.stringify(queryData)).then(
+      state.lambda(queryData['query']).then(
         (response) => {
-          connection.respond(queryData['query_id'], 4, response)
-          commit('SET_ORACLE_STATUS', `Oracle sent answer to question ${queryData['query_id']}`)
+          let sentData = connection.respond(queryData['query_id'], 4, response)
+          commit('ADD_MESSAGE', {
+            message: JSON.stringify(sentData, null, 1),
+            incoming: false
+          })
+          commit('SET_ORACLE_STATUS', `Oracle sent answer to question ${truncate(queryData['query_id'])}`)
         }
       ).catch((error) => console.error(error))
     })
     connection.on('query', function (queryId) {
-      console.log(`Query id ${queryId}`)
-      connection.subscribeQuery(queryId)
-      commit('SET_ORACLE_STATUS', `Waiting for response to question ${queryId}`)
+      let sentData = connection.subscribeQuery(queryId)
+      commit('ADD_MESSAGE', {
+        message: JSON.stringify(sentData, null, 1),
+        incoming: false
+      })
+      commit('SET_ORACLE_STATUS', `Waiting for response to question ${truncate(queryId)}`)
       commit('SET_QUERY_ID', queryId)
     })
-    connection.on('subscribed', function (queryId) {
-      console.log(`Subscription event ${JSON.stringify(queryId)}`)
-    })
     connection.on('response', function (response) {
-      console.log(`CLIENT RESPONSE: ${JSON.stringify(response)}`)
-      commit('SET_ORACLE_STATUS', `Client received response to question ${response['query_id']} => ${response['response']}`)
+      commit('SET_ORACLE_STATUS', `Client received response to question ${truncate(response['query_id'])} => ${response['response']}`)
       commit('SET_RESPONSE', {
         queryId: response['query_id'],
         response: response['response']
@@ -93,13 +111,18 @@ const actions = {
   },
   disconnect ({commit, state}) {
     state.oracleConnection && state.oracleConnection.webSocket && state.oracleConnection.webSocket.close()
+    commit('SET_ORACLE_ID', undefined)
   },
   registerOracle ({commit}, {queryFormat, responseFormat, queryFee, ttl, fee}) {
-    state.oracleConnection.register(queryFormat, responseFormat, queryFee, ttl, fee)
+    let sentData = state.oracleConnection.register(queryFormat, responseFormat, queryFee, ttl, fee)
+    commit('ADD_MESSAGE', {
+      message: JSON.stringify(sentData, null, 1),
+      incoming: false
+    })
     commit('SET_ORACLE_STATUS', 'Waiting for Oracle registration confirmation (waiting for next block)')
   },
   setLambda ({commit}, lambda) {
-    console.log(lambda)
+    /* eslint no-new-func: 'off' */
     commit('SET_LAMBDA', lambda)
   },
   submitQuery ({commit}, args) {
@@ -118,6 +141,7 @@ const getters = {
   oracleStatus: (state) => state.status,
   oracleId: (state) => state.oracleId,
   oracleLambda: (state) => state.lambda,
+  oracleLambdaString: (state) => state.lambdaString,
   blockHeight: (state) => state.blockHeight,
   statusHistory: (state) => state.statusHistory,
   connectionStatus: (state) => {
