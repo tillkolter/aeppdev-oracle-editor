@@ -26,6 +26,11 @@
 <style lang="scss">
   .status-history {
     max-width: 600px;
+    max-height: 300px;
+    min-height: 300px;
+    overflow: scroll;
+    margin: 32px 0;
+    padding: 16px;
     .timestamp {
       vertical-align: top;
     }

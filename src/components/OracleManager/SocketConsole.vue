@@ -1,6 +1,9 @@
 <template>
   <div v-if="messages && messages.length > 0" class="socket-console">
-    <pre class="socket-console__line" v-html="message" v-for="message in messages"></pre>
+    <pre :class="['socket-console__line', messageItem.incoming ? 'incoming': 'outgoing']"
+         v-html="getOutputHtml(messageItem)"
+         v-for="messageItem in messages"
+    ></pre>
   </div>
 </template>
 
@@ -10,6 +13,11 @@
     name: 'SocketConsole',
     computed: {
       ...mapGetters(['messages'])
+    },
+    methods: {
+      getOutputHtml (messageItem) {
+        return `${messageItem.incoming ? 'RECEIVED:' : 'SENT:'}&nbsp;${messageItem.message}`
+      }
     }
   }
 </script>
@@ -30,6 +38,12 @@
     overflow-wrap: break-word;
     &__line {
       white-space: pre-wrap;
+      &.incoming {
+        color: lightgreen;
+      }
+      &.outgoing {
+        color: lightblue;
+      }
     }
   }
 </style>

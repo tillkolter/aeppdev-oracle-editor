@@ -9,8 +9,8 @@
       <query-form></query-form>
     </div>
     <div>
-      <status-history></status-history>
       <socket-console></socket-console>
+      <status-history></status-history>
     </div>
   </div>
 </template>
