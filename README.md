@@ -4,8 +4,27 @@ VueJs based Æternity Oracles connector to develop and test oracles.
 
 For more information on Æternity oracles read [this](https://github.com/aeternity/protocol/blob/master/epoch/api/oracle_api_usage.md)
 
+## Usage
+
+The editor is mainly supposed for demonstration purposes and client-side testing. 
+
+For a brief introduction video of the usage workflow please click on the image below 
+[![Oracle Editor Introduction](https://user-images.githubusercontent.com/590062/35821941-fdd24f5a-0aaa-11e8-8e8d-0b4435a195e2.png)](https://www.youtube.com/watch?v=rfZ_moWlPhg)
+
+## Configuration
+
+This section contains notes on Æternity specific configuration. For building instructions please read the section below.
+
+**IMPORTANT:** Before you can start the dev server please make sure that you have set up a local Æternity Epoch testnet node with a tuned mining interval. Find a detailed instruction [here](https://github.com/aeternity/dev-tools/blob/master/INSTALL.md). If you are having any difficulties, please dont hesitate to get in touch!
+
+Before you can test the Oracle editor you have to make sure, that your local node is running *and mining!*
+
+To set up the editor please copy the file [`src/config.json.temp`](https://github.com/tillkolter/aeppdev-oracle-editor/blob/master/src/config.json.template) to `src/config.json` and fill in the public key of your account. The template contains the standard ports so you would not have to change that unless you have edited the `epoch.yaml` in your Epoch root.
+
+That should be it for running the editor.
 
 ## Build Setup
+
 
 ``` bash
 # install dependencies
