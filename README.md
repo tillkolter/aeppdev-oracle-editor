@@ -25,7 +25,6 @@ That should be it for running the editor.
 
 ## Build Setup
 
-
 ``` bash
 # install dependencies
 npm install
