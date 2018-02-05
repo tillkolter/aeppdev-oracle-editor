@@ -6,8 +6,6 @@ For more information on Æternity oracles read [this](https://github.com/aeterni
 
 ## Usage
 
-The editor is mainly supposed for demonstration purposes and client-side testing. 
-
 For a brief introduction video of the usage workflow please click on the image below 
 [![Oracle Editor Introduction](https://user-images.githubusercontent.com/590062/35821941-fdd24f5a-0aaa-11e8-8e8d-0b4435a195e2.png)](https://www.youtube.com/watch?v=rfZ_moWlPhg)
 
