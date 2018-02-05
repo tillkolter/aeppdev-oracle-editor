@@ -19,7 +19,7 @@ This section contains notes on Æternity specific configuration. For building in
 
 Before you can test the Oracle editor you have to make sure, that your local node is running *and mining!*
 
-To set up the editor please copy the file [`src/config.json.temp`](https://github.com/tillkolter/aeppdev-oracle-editor/blob/master/src/config.json.template) to `src/config.json` and fill in the public key of your account. The template contains the standard ports so you would not have to change that unless you have edited the `epoch.yaml` in your Epoch root.
+To set up the editor please copy the file [`src/config.json.temp`](https://github.com/tillkolter/aeppdev-oracle-editor/blob/master/src/config.json.template) to `src/config.json` and fill in the public key of your account. The template contains the standard ports, so you would not have to change that unless you have edited the `epoch.yaml` in your Epoch root.
 
 That should be it for running the editor.
 
