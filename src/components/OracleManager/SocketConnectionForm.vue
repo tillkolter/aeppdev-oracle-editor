@@ -9,7 +9,7 @@
         <input id="host" name="host" type="text" v-model="host" required/>
       </label>
       <label for="port">
-        Port
+        WS Port
         <input id="port" name="port" type="number" v-model="port" required/>
       </label>
       <label for="http-port">
