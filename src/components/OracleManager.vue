@@ -8,7 +8,7 @@
       <oracle-registration-form></oracle-registration-form>
       <query-form></query-form>
     </div>
-    <div>
+    <div class="logs">
       <socket-console></socket-console>
       <status-history></status-history>
     </div>
@@ -42,5 +42,8 @@
   .status-panel {
     display: flex;
     flex-direction: row;
+  }
+  .logs {
+    display: flex;
   }
 </style>

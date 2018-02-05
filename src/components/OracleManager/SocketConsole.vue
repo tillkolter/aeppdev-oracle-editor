@@ -1,5 +1,5 @@
 <template>
-  <div v-if="messages && messages.length > 0" class="socket-console">
+  <div class="socket-console">
     <pre :class="['socket-console__line', messageItem.incoming ? 'incoming': 'outgoing']"
          v-html="getOutputHtml(messageItem)"
          v-for="messageItem in messages"
@@ -30,6 +30,7 @@
     margin: 32px 0;
     padding: 16px;
     max-width: 600px;
+    min-width: 600px;
     text-align: left;
     background-color: black;
     color: lightgreen;

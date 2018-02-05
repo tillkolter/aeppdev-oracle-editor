@@ -26,8 +26,9 @@
 <style lang="scss">
   .status-history {
     max-width: 600px;
+    min-width: 600px;
     max-height: 300px;
-    min-height: 300px;
+    /*min-height: 300px;*/
     overflow: scroll;
     margin: 32px 0;
     padding: 16px;
@@ -35,6 +36,7 @@
       vertical-align: top;
     }
     .message {
+      vertical-align: top;
       word-break: break-all;
     }
   }
