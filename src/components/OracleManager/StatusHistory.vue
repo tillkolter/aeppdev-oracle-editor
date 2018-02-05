@@ -1,9 +1,10 @@
 <template>
-  <div>
-    <div v-for="status in statusHistory">
-      {{formatTimestamp(status.timestamp)}}&nbsp;&nbsp;&nbsp;{{status.message}}
-    </div>
-  </div>
+  <table class="status-history">
+    <tr v-for="status in statusHistory">
+      <td class="timestamp">{{formatTimestamp(status.timestamp)}}</td>
+      <td class="message">&nbsp;&nbsp;&nbsp;{{status.message}}</td>
+    </tr>
+  </table>
 </template>
 
 <script>
@@ -21,3 +22,15 @@
     }
   }
 </script>
+
+<style lang="scss">
+  .status-history {
+    max-width: 600px;
+    .timestamp {
+      vertical-align: top;
+    }
+    .message {
+      word-break: break-all;
+    }
+  }
+</style>

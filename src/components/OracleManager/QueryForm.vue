@@ -14,7 +14,11 @@
       <label for="query">Query</label>
       <input type="text" id="query" v-model="query"/>
     </form>
-    <ae-button class="query-btn" form="oracle-query" :type="oracleId && query ? 'dramatic': 'boring'">Send Query</ae-button>
+    <ae-button class="query-btn"
+               form="oracle-query"
+               :type="oracleId && query ? 'dramatic': 'boring'"
+               :inactive="!oracleId || !query"
+    >Send Query</ae-button>
   </div>
 </template>
 
@@ -32,7 +36,7 @@
         queryTtl: 10,
         responseTtl: 10,
         fee: 7,
-        query: 'Get random number'
+        query: 42
       }
     },
     watch: {

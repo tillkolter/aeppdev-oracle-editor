@@ -26,7 +26,7 @@
       <div class="oracle-registration__buttons">
         <ae-button form="oracle-registration-form"
                    :type="registrationButtonType"
-                   :disabled="registrationEnabled"
+                   :inactive="registrationEnabled"
         >Register</ae-button>
       </div>
     </div>
@@ -40,7 +40,7 @@
         <input id="lambda-input" v-model="inputValue" type="text"/>
         <div class="oracle-lambda-buttons">
           <ae-button form="lambda-form" :type="oracleId ? 'normal': 'boring'">Test</ae-button>
-          <ae-button @click="onSubmitJS" :type="oracleId ? 'exciting': 'boring'">Save</ae-button>
+          <ae-button @click="onSubmitJS" :type="'exciting'" :inactive="lambdaUptodate || !oracleId">Save</ae-button>
         </div>
       </div>
       <div>{{error ? 'This function does not compile': ''}}</div>
@@ -62,10 +62,11 @@
         queryFee: 4,
         ttl: 50,
         fee: 5,
-        inputValue: 'test with some input',
+        inputValue: '42',
         lambda: `function responderFunction (input) {
   return new Promise((resolve, reject) => {
-     resolve("response to input: " + input)
+     let max = parseInt(input)
+     resolve(Math.floor(Math.random() * Math.floor(max)).toString())
   })
 }
 `,
@@ -85,13 +86,15 @@
       },
       onSubmitJS () {
         this.checked(this.lambda, () => console.log('submit'))
-        this.$store.dispatch('setLambda', Function(`return ${this.lambda}`)())
+        this.$store.dispatch('setLambda', this.lambda)
       },
       checked (code, command) {
         try {
           /* eslint no-new-func: 'off' */
           Function(code)
-          command.call()
+          if (command) {
+            command.call()
+          }
         } catch (e) {
           this.error = e
           console.log(e)
@@ -116,7 +119,7 @@
       }
     },
     computed: {
-      ...mapGetters(['oracleLambda', 'oracleId', 'webSocket']),
+      ...mapGetters(['oracleLambda', 'oracleLambdaString', 'oracleId', 'webSocket']),
       registrationButtonType () {
         if (this.webSocket) {
           if (this.oracleId) {
@@ -130,6 +133,9 @@
       },
       registrationEnabled () {
         return typeof this.webSocket === 'undefined'
+      },
+      lambdaUptodate () {
+        return this.lambda === this.oracleLambdaString
       }
     },
     mounted () {

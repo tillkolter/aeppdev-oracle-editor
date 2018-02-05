@@ -16,6 +16,9 @@
 
 <style lang="scss">
   .socket-console {
+    max-height: 300px;
+    min-height: 300px;
+    overflow: scroll;
     margin: 32px 0;
     padding: 16px;
     max-width: 600px;
