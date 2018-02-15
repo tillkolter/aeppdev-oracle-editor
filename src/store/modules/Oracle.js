@@ -1,9 +1,10 @@
-import OracleConnection from 'aepp-oracles-sdk'
+import Aeternity from 'aepp-sdk'
+
 import {truncate} from '../../utils/strings'
 
 const state = {
   messages: [],
-  oracleConnection: undefined,
+  provider: undefined,
   oracleId: undefined,
   status: 'Disconnected from Websocket',
   statusHistory: [],
@@ -11,7 +12,9 @@ const state = {
   lambda: (x) => new Promise((resolve, reject) => resolve(`Response for ${x}`)),
   lambdaString: '',
   blockHeight: undefined,
-  responses: {}
+  responses: {},
+  readyState: WebSocket.CLOSED,
+  oracles: undefined
 }
 
 const mutations = {
@@ -19,9 +22,12 @@ const mutations = {
     state.messages.push(message)
   },
   SET_WEBSOCKET_CONNECTION (state, socket) {
-    state.oracleConnection = socket
+    state.provider = socket
   },
   SET_ORACLE_ID (state, id) {
+    if (typeof id === 'undefined') {
+      state.provider && state.provider.webSocket && state.provider.webSocket.close()
+    }
     state.oracleId = id
   },
   SET_ORACLE_STATUS (state, status) {
@@ -33,7 +39,7 @@ const mutations = {
     state.lambdaString = lambda
   },
   SUBMIT_QUERY (state, {oracleId, queryFee, queryTtl, responseTtl, fee, query}) {
-    let sentData = state.oracleConnection.query(oracleId, queryFee, queryTtl, responseTtl, fee, query)
+    let sentData = state.oracles.query(oracleId, queryFee, queryTtl, responseTtl, fee, query)
     state.messages.push({
       message: JSON.stringify(sentData),
       incoming: false
@@ -47,40 +53,52 @@ const mutations = {
   },
   SET_RESPONSE (state, {queryId, response}) {
     state.responses[queryId] = response
+  },
+  SET_READY_STATE (state, readyState) {
+    state.readyState = readyState
+  },
+  SET_ORACLES (state, oracles) {
+    state.oracles = oracles
   }
 }
 
 const actions = {
-  connect ({commit}, {host, port, account, httpPort}) {
-    let connection = new OracleConnection(host, port, account, {httpPort})
-    connection.on('message', (message) => {
+  connect ({commit}, {host, port, httpPort}) {
+    let client = new Aeternity(new Aeternity.providers.WebsocketProvider(host, port))
+    let oracles = client.oracles
+    let provider = client.provider
+    provider.on('message', (message) => {
       let ingoingMessage = {
         message: JSON.stringify(JSON.parse(message), null, 1),
         incoming: true
       }
       commit('ADD_MESSAGE', ingoingMessage)
     })
-    connection.on('close', () => {
+    provider.on('close', () => {
+      commit('SET_ORACLES', null)
       commit('SET_WEBSOCKET_CONNECTION', null)
       commit('SET_ORACLE_STATUS', 'Disconnected from Websocket')
+      commit('SET_READY_STATE', WebSocket.CLOSED)
     })
-    connection.on('open', () => {
-      commit('SET_WEBSOCKET_CONNECTION', connection)
+    provider.on('open', () => {
+      commit('SET_WEBSOCKET_CONNECTION', provider)
+      commit('SET_ORACLES', oracles)
       commit('SET_ORACLE_STATUS', 'Connected to Websocket')
+      commit('SET_READY_STATE', WebSocket.OPEN)
     })
-    connection.on('registeredOracle', (oracleId) => {
+    provider.on('registeredOracle', (oracleId) => {
       commit('SET_ORACLE_ID', oracleId)
       commit('SET_ORACLE_STATUS', 'Oracle registered')
-      let sentData = connection.subscribe(oracleId)
+      let sentData = oracles.subscribe(oracleId)
       commit('ADD_MESSAGE', {
         message: JSON.stringify(sentData, null, 1),
         incoming: false
       })
     })
-    connection.on('newQuery', function (queryData) {
+    provider.on('newQuery', function (queryData) {
       state.lambda(queryData['query']).then(
         (response) => {
-          let sentData = connection.respond(queryData['query_id'], 4, response)
+          let sentData = oracles.respond(queryData['query_id'], 4, response)
           commit('ADD_MESSAGE', {
             message: JSON.stringify(sentData, null, 1),
             incoming: false
@@ -89,8 +107,8 @@ const actions = {
         }
       ).catch((error) => console.error(error))
     })
-    connection.on('query', function (queryId) {
-      let sentData = connection.subscribeQuery(queryId)
+    provider.on('query', function (queryId) {
+      let sentData = oracles.subscribeQuery(queryId)
       commit('ADD_MESSAGE', {
         message: JSON.stringify(sentData, null, 1),
         incoming: false
@@ -98,23 +116,23 @@ const actions = {
       commit('SET_ORACLE_STATUS', `Waiting for response to question ${truncate(queryId)}`)
       commit('SET_QUERY_ID', queryId)
     })
-    connection.on('response', function (response) {
+    provider.on('response', function (response) {
       commit('SET_ORACLE_STATUS', `Client received response to question ${truncate(response['query_id'])} => ${response['response']}`)
       commit('SET_RESPONSE', {
         queryId: response['query_id'],
         response: response['response']
       })
     })
-    connection.on('newBlock', function (blockHeight) {
+    provider.on('newBlock', function (blockHeight) {
       commit('SET_BLOCK_HEIGHT', blockHeight)
     })
   },
   disconnect ({commit, state}) {
-    state.oracleConnection && state.oracleConnection.webSocket && state.oracleConnection.webSocket.close()
+    state.provider && state.provider.close()
     commit('SET_ORACLE_ID', undefined)
   },
   registerOracle ({commit}, {queryFormat, responseFormat, queryFee, ttl, fee}) {
-    let sentData = state.oracleConnection.register(queryFormat, responseFormat, queryFee, ttl, fee)
+    let sentData = state.oracles.register(queryFormat, responseFormat, queryFee, ttl, fee)
     commit('ADD_MESSAGE', {
       message: JSON.stringify(sentData, null, 1),
       incoming: false
@@ -133,11 +151,9 @@ const actions = {
 
 const getters = {
   messages: (state) => state.messages,
-  webSocket: (state) => state.oracleConnection,
-  isConnected: (state) => state.oracleConnection && state.oracleConnection.readyState === WebSocket.OPEN,
-  isClosed: (state) => !state.oracleConnection || state.oracleConnection.readyState === WebSocket.CLOSED,
-  isConnecting: (state) => state.oracleConnection && state.oracleConnection.readyState === WebSocket.CONNECTING,
-  isClosing: (state) => state.oracleConnection && state.oracleConnection.readyState === WebSocket.CLOSING,
+  webSocket: (state) => state.provider,
+  isConnected: (state) => state.oracles && state.readyState === WebSocket.OPEN,
+  isClosed: (state) => !state.oracles || state.readyState === WebSocket.CLOSED,
   oracleStatus: (state) => state.status,
   oracleId: (state) => state.oracleId,
   oracleLambda: (state) => state.lambda,
@@ -145,8 +161,8 @@ const getters = {
   blockHeight: (state) => state.blockHeight,
   statusHistory: (state) => state.statusHistory,
   connectionStatus: (state) => {
-    if (state.oracleConnection) {
-      switch (state.oracleConnection.webSocket.readyState) {
+    if (state.provider) {
+      switch (state.provider.readyState) {
         case WebSocket.OPEN:
           return 'Connected'
         case WebSocket.CLOSED:
@@ -156,7 +172,7 @@ const getters = {
         case WebSocket.CLOSING:
           return 'Closing'
         default:
-          console.log(state.oracleConnection.webSocket.readyState)
+          console.log(state.provider.readyState)
           return 'Undefined'
       }
     } else {

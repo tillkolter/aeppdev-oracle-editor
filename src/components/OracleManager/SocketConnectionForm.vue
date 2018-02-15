@@ -1,8 +1,5 @@
 <template>
   <form id="connection" class="connection-form" @submit.prevent="toggleConnect" >
-    <label for="account">Account
-      <input id="account" name="account" type="text" v-model="account" required/>
-    </label>
     <div>
       <label for="host">
         Host
@@ -39,7 +36,6 @@
     components: {AeButton},
     data () {
       return {
-        account: (config && config.account) || '',
         port: (config && config.port) || 3104,
         host: (config && config.host) || 'localhost',
         httpPort: (config && config.httpPort) || 3003
@@ -56,7 +52,7 @@
         if (this.isClosed) {
           this.$store.dispatch(
             'connect',
-            {account: this.account, host: this.host, port: this.port, httpPort: this.httpPort}
+            {host: this.host, port: this.port, httpPort: this.httpPort}
           )
         } else {
           this.$store.dispatch('disconnect')
